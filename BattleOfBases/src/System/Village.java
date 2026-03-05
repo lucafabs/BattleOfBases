@@ -3,24 +3,23 @@ import Structure.*;
 import Unit.*;
 
 public class Village {
-    private String playerName;
-    private String playerId;
     private int totalWood;
-    private int totalGold;
     private int totalIron;
+    private int totalGold;
     private int villageLevel;
     private int mapSize;
     private int amountOfWins;
     private int rank;
 
+    public float shieldDuration;
+
     public Engine engine;
     public VillageHall villageHall;
-    private Building[] buildings;
-    private Inhabitant[] inhabitants;
+    public Building[] buildings;
+    public Inhabitant[] inhabitants;
 
-    public Village(Engine engine, VillageHall villageHall) {
+    public Village(Engine engine) {
         this.engine = engine;
-
         this.villageHall = new VillageHall(this);
     }
 
@@ -31,6 +30,27 @@ public class Village {
 
         this.villageHall = new VillageHall(this);
 
+    }
+
+    public String ReceiveCommand(String command) {
+        String response;
+        switch(command) {
+            case "AttackExplore":
+                System.out.println("Generating a potential target...");
+                break;
+            case "Build":
+                break;
+            case "Generate":
+                break;
+            case "Upgrade":
+                break;
+            case "Train":
+                break;
+            default:
+                System.out.println("Not a valid command.");
+        }
+
+        return null;
     }
 
     public void upgradeVillage(Resource materials, int cost, float time) {
@@ -76,10 +96,13 @@ public class Village {
     public void addResource(Resource type, int amount) {
         if (type.equals(Resource.WOOD)) {
             totalWood += amount;
+            if (totalWood < 0) totalWood = 0;
         } else if (type.equals(Resource.IRON)) {
             totalIron += amount;
+            if (totalIron < 0) totalIron = 0;
         } else if (type.equals(Resource.GOLD)) {
             totalGold += amount;
+            if (totalGold < 0) totalGold = 0;
         } else {
             System.out.println("Incorrect resource inputted.");
         }

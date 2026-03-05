@@ -1,26 +1,25 @@
 package System;
-import Structure.*;
-import Unit.*;
 
 public interface IAttack {
     /**
-     * measure strength of given army
-     * @param army
+     * measure strength of given village's army
+     * @param v
      * @return army strength
      */
-    public int calculateAttack(ArmyMember[] army);
+    public int calculateAttack(Village v);
 
     /**
-     * measure defense of given defenses
-     * @param defense
+     * measure defense of given village's defenses
+     * @param v
      * @return army defense
      */
-    public int calculateDefense(DefenseBuilding[] defense);
+    public int calculateDefense(Village v);
 
     /**
      * calculate amount of loot to reward for a successful attack
-     * @param target village being attacked
-     * @return resources[] paid out (wood, gold, iron)
+     * @param attacker village performing the attack
+     * @param defender village being attacked
+     * @return int[] paid out (wood, gold, iron)
      */
-    public Resource[] calculateLootPayout(Village target);
+    public int[] performLootPayout(Village attacker, Village defender);
 }

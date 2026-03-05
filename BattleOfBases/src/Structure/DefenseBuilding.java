@@ -9,6 +9,10 @@ abstract public class DefenseBuilding extends Building {
         attackRange = range;
     }
 
+    public int getDefense() {
+        return (int)(attackDamage * attackRange);
+    }
+
     public void setDefenseLevel(){
         switch(level){
             case 0:

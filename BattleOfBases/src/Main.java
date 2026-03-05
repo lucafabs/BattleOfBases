@@ -1,13 +1,11 @@
 import Structure.Resource;
 import System.*;
 import Unit.*;
-import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        Engine engine = new Engine(new Village[3]);
-        engine.generateVillages();
-        Village village = new Village(engine, null, null);
+
+        Village village = Engine.getInstance().villages[9];
 
         village.addResource(Resource.WOOD, 10);
         village.villageHall.totalFood += 10;
@@ -18,15 +16,7 @@ public class Main {
 
         village.villageHall.totalArmy.add(village.villageHall.createArmyUnit(archer));
 
-
-//        village.upgradeVillage(null, 0, 0f);
-//
-//        village.villageHall.launchAttack(engine.villages[0]);
-//
-//        village.villageHall.guardVillage(100f);
-
-
-
-
+        //in the future multiple players will be supported
+        Player p = new Player(village);
     }
 }
