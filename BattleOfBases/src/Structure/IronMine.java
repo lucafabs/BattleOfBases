@@ -3,7 +3,7 @@ package Structure;
 public class IronMine extends Mine{
     public IronMine(){
         name = "Iron Mine";
-        setValues(5, Resource.WOOD, 6);
+        setValues(5, Resource.WOOD, 6, 8);
         setMine(5, Resource.IRON, 1);
     }
 

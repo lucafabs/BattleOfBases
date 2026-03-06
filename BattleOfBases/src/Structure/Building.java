@@ -5,20 +5,21 @@ abstract public class Building {
     public int level;
     public Resource resourceNeeded;
     public int costToMake;
-
+    protected int areaSize;
     protected int hitPoints;
 
     private Village village;
 
     public String name;
 
-    public void setValues(int hp, Resource resource, int cost){
+    public void setValues(int hp, Resource resource, int cost, int area){
         // By Default, every starts at 0 and can be upgraded.
         level = 0;
 
         hitPoints = hp;
         resourceNeeded = resource;
         costToMake = cost;
+        areaSize = area;
     }
 
     public void upgrade(Resource type, Worker builder, int cost, float time){

@@ -5,7 +5,7 @@ public class Farm extends Building{
 
     public Farm(){
         name = "Farm";
-        setValues(5, Resource.WOOD, 5);
+        setValues(5, Resource.WOOD, 5, 8);
     }
     public void setFarmLevel(){
         //attempt to upgrade farm based on materials available
