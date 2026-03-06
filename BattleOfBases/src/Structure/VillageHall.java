@@ -5,8 +5,8 @@ import Unit.*;
 import java.util.ArrayList;
 
 public class VillageHall extends Building{
-    private int totalWorkers;
-    private int totalMiners;
+    private ArrayList<Worker> totalWorkers;
+    private ArrayList<Collector> totalCollectors;
     public ArrayList<ArmyMember> totalArmy;
     public int totalFood;
 

@@ -127,42 +127,4 @@ public class Engine implements IAttack, ITimeSystem {
         //wait for time
         System.out.println("Waiting for: " + time);
     }
-
-    // Call to set the values for Units
-    public void setUnitValues(Archer archer, Catapult catapult, Knight knight, Soldier soldier, Worker worker, Collector collector){
-        // Setting combative units costs & damage
-        archer.setCost(2, 2, Resource.WOOD);
-        archer.setDamage(1, 3, DamageType.ARROW, 5);
-
-        catapult.setCost(5, 10, Resource.GOLD);
-        catapult.setDamage(7, 10, DamageType.CATAPULT, 20);
-
-        knight.setCost(1, 1, Resource.WOOD);
-        knight.setDamage(2, 1, DamageType.SWORD, 8);
-
-        soldier.setCost(3, 5, Resource.IRON);
-        soldier.setDamage(4, 1, DamageType.SWORD, 16);
-
-        // Setting non-combat units values
-        worker.setCost(1, 1, Resource.WOOD);
-        collector.setCost(2, 2, Resource.IRON);
-    }
-
-    public void setBuildingValues(ArcherTower archerTower, Cannon cannon, Farm farm, GoldMine goldMine, IronMine ironMine, LumberMill lumberMill){
-        // Setting defensive buildings values defaults
-        archerTower.setValues(15, Resource.WOOD, 5);
-        archerTower.setAttack(5, 5);
-
-        cannon.setValues(25, Resource.IRON, 10);
-        cannon.setAttack(10, 10);
-
-        // Setting productive buildings defaults
-        farm.setValues(5, Resource.WOOD, 5);
-        goldMine.setValues(5, Resource.IRON, 7);
-        goldMine.setMine(5, Resource.GOLD, 1);
-        ironMine.setValues(5, Resource.WOOD, 6);
-        ironMine.setMine(5, Resource.IRON, 1);
-        lumberMill.setValues(5, Resource.WOOD, 5);
-        lumberMill.setMine(5, Resource.WOOD, 1);
-    }
 }
