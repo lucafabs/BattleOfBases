@@ -4,6 +4,7 @@ public class Farm extends Building{
     int foodProduced;
 
     public Farm(){
+        name = "Farm";
         setValues(5, Resource.WOOD, 5);
     }
     public void setFarmLevel(){
@@ -23,5 +24,9 @@ public class Farm extends Building{
                 foodProduced = 30;
                 break;
         }
+    }
+
+    public Building clone() {
+        return new Farm();
     }
 }

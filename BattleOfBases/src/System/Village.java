@@ -1,6 +1,7 @@
 package System;
 import Structure.*;
 import Unit.*;
+import java.util.List;
 
 public class Village {
     private int totalWood;
@@ -15,7 +16,7 @@ public class Village {
 
     public Engine engine;
     public VillageHall villageHall;
-    public Building[] buildings;
+    public List<Building> buildings;
     public Inhabitant[] inhabitants;
 
     public Village(Engine engine) {
@@ -23,34 +24,13 @@ public class Village {
         this.villageHall = new VillageHall(this);
     }
 
-    public Village(Engine engine, Building[] buildings, Inhabitant[] inhabitants) {
+    public Village(Engine engine, List<Building> buildings, Inhabitant[] inhabitants) {
         this.engine = engine;
         this.buildings = buildings;
         this.inhabitants = inhabitants;
 
         this.villageHall = new VillageHall(this);
 
-    }
-
-    public String ReceiveCommand(String command) {
-        String response;
-        switch(command) {
-            case "AttackExplore":
-                System.out.println("Generating a potential target...");
-                break;
-            case "Build":
-                break;
-            case "Generate":
-                break;
-            case "Upgrade":
-                break;
-            case "Train":
-                break;
-            default:
-                System.out.println("Not a valid command.");
-        }
-
-        return null;
     }
 
     public void upgradeVillage(Resource materials, int cost, float time) {

@@ -1,4 +1,6 @@
 package System;
+import Structure.*;
+
 import java.util.Scanner;
 public class Player {
     int playerID;
@@ -25,6 +27,7 @@ public class Player {
                     AttackExplore();
                     break;
                 case "Build":
+                    Build();
                     break;
                 case "Generate":
                     break;
@@ -60,10 +63,6 @@ public class Player {
                     + "\nYes / No");
             input = scanner.nextLine();
 
-            if (input.isEmpty()) {
-                System.out.println("Invalid input.");
-            }
-
             if (input.equals("Yes")) {
                 System.out.println("Performing attack.");
                 Engine.getInstance().processBattle(village, defender);
@@ -73,8 +72,33 @@ public class Player {
         }
     }
 
+    private void Build() {
+        printBuildings();
+        input = scanner.nextLine();
+        for(Building building: Engine.buildingTypes) {
+            if(input.equals(building.name))
+            {
+                Engine.getInstance().tryBuild(village, building);
+            }
+        }
+    }
+
+
+    private void printBuildings() {
+        System.out.println("What kind of building would you like to build?"
+                + "\nArcher Tower: 5 Wood"
+                + "\nCannon: 10 Iron"
+                + "\nFarm: 5 Wood"
+                + "\nGold Mine: 7 Iron"
+                + "\nIron Mine: 6 Wood"
+                + "\nLumber Mill: 5 Wood"
+                + "\nQuit: Go back."
+                + "\n===========================================================");
+    }
+
     private void printCommands() {
         System.out.println("Welcome to the Battle of Bases prototype! Utilize the following commands to perform actions!"
+                + "\n======================================================================================================="
                 + "\nAttackExplore: Find an enemy base to attack."
                 + "\nBuild: Construct a new building."
                 + "\nGenerate: Create a new village of relative strength to your own."
@@ -84,5 +108,4 @@ public class Player {
                 + "\nQuit: Exit the game."
                 + "\n=======================================================================================================");
     }
-
 }

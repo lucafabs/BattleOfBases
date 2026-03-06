@@ -2,12 +2,15 @@ package Structure;
 import Unit.*;
 import System.*;
 abstract public class Building {
-    protected int level;
+    public int level;
+    public Resource resourceNeeded;
+    public int costToMake;
+
     protected int hitPoints;
-    protected Resource resourceNeeded;
-    protected int costToMake;
 
     private Village village;
+
+    public String name;
 
     public void setValues(int hp, Resource resource, int cost){
         // By Default, every starts at 0 and can be upgraded.
@@ -31,15 +34,13 @@ abstract public class Building {
         //attempt to repair based on available workers and resources available
         System.out.println("attempting to repair building");
     }
-    public Building build(Resource type, Worker builder, int cost, float time, Building building) {
+    public void build(Village owner) {
         //attempt to build this building based on available workers and resources available
-        System.out.println("attempting to build building");
-        if(village.checkResourceAmount(type) > cost && builder.isIdle){
-            System.out.println("Creating building");
-            return building;
-        }
+        System.out.println("Creating building");
+        village = owner;
 
-        System.out.println("Unable to create building");
-        return null;
+        owner.addResource(resourceNeeded, -costToMake);
     }
+
+    public abstract Building clone();
 }

@@ -50,4 +50,9 @@ public class VillageHall extends Building{
         System.out.println("Cannot create " + unitType);
         return null;
     }
+
+    //This building should never be cloned
+    public Building clone() {
+        return null;
+    }
 }

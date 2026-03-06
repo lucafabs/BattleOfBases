@@ -2,6 +2,9 @@ package System;
 import Structure.*;
 import Unit.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Engine implements IAttack, ITimeSystem {
     private ITimeSystem timeSystem;
     private int maxVillageLevel;
@@ -9,10 +12,15 @@ public class Engine implements IAttack, ITimeSystem {
     public Village[] villages;
 
     //default buildings a village will receive when created initially
-    private Building[] defaultBuildings;
+    private List<Building> defaultBuildings = new ArrayList<>();
 
     //default inhabitants a village will receive when created initially
     private Inhabitant[] defaultInhabitants;
+
+    private static final int defaultResources = 100;
+
+    public static Building[] buildingTypes = new Building[] {new ArcherTower(), new Cannon(), new Farm(), new GoldMine(), new IronMine(), new LumberMill()};
+
 
     private static Engine singleInstance = null;
 
@@ -45,9 +53,36 @@ public class Engine implements IAttack, ITimeSystem {
         //initialize villages[]
         System.out.println("Generating villages");
         for(int i = 0; i < villages.length; i++) {
-            defaultBuildings = new Building[] {new Cannon()};
+            //give village the buildings & inhabitants they spawn with by default
+            defaultBuildings.add(new Cannon());
             defaultInhabitants = new Inhabitant[] {new Archer(), new Archer(), new Archer(), new Archer(), new Archer()};
+
             villages[i] = new Village(this, defaultBuildings, defaultInhabitants);
+
+            //give village the default amount of resources
+            villages[i].addResource(Resource.WOOD, defaultResources);
+            villages[i].addResource(Resource.IRON, defaultResources);
+            villages[i].addResource(Resource.GOLD, defaultResources);
+        }
+    }
+
+    public int determineRank(int wins) {
+        //compare rank to other villages[]
+        System.out.println("Determining rank of village");
+        return 0;
+    }
+
+    public void tryBuild(Village v, Building b) {
+        if(checkIfUpgradeAllowed(b.costToMake, b.resourceNeeded, b.level, v)) {
+            System.out.println("Constructing " + b.name);
+            Building newBuilding = b.clone();
+            if(newBuilding != null) {
+                newBuilding.build(v);
+                v.buildings.add(newBuilding);
+            }
+            else {
+                System.out.println("failed to build " + b.name);
+            }
         }
     }
 
@@ -56,10 +91,9 @@ public class Engine implements IAttack, ITimeSystem {
         return village.checkResourceAmount(resource) > cost && currLevel < 3;
     }
 
-    public int determineRank(int wins) {
-        //compare rank to other villages[]
-        System.out.println("Determining rank of village");
-        return 0;
+    public void processConstructionTime(float time) {
+        //workers are occupied during construction time
+        System.out.println("Constructing...");
     }
 
     public void processBattle(Village attacker, Village defender) {
@@ -71,18 +105,13 @@ public class Engine implements IAttack, ITimeSystem {
             int[] payout = performLootPayout(attacker, defender);
 
             System.out.println(
-              payout[0] + " Wood\n"
-             +payout[1] + " Iron\n"
-             +payout[2] + " Gold\n");
+                    payout[0] + " Wood\n"
+                            +payout[1] + " Iron\n"
+                            +payout[2] + " Gold\n");
         }
         else {
             System.out.println("You lose.");
         }
-    }
-
-    public void processConstructionTime(float time) {
-        //workers are occupied during construction time
-        System.out.println("Constructing...");
     }
 
     public int calculateAttack(Village v) {
