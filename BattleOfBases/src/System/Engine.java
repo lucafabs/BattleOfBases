@@ -2,6 +2,7 @@ package System;
 import Structure.*;
 import Unit.*;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,27 +43,26 @@ public class Engine implements IAttack, ITimeSystem {
         //check if attack is possible - are there villages that can be attacked? is the attacker allowed?
         System.out.println("Searching for villages that can be attacked...");
         for(Village v : villages) {
-            if(!v.hasShield()) {
+            if(!v.shieldActive) {
                 //this village can be attacked
                 return v;
             }
         }
         return null;
-        //select a random village Villages & launch an attack
     }
 
     public void generateVillages() {
-        //initialize villages[]
+        //initialize villages
         System.out.println("Generating villages");
         for(int i = 0; i < initialVillages; i++) {
             //give village the buildings & inhabitants they spawn with by default
-            defaultBuildings = Arrays.asList(new Cannon(), new ArcherTower());
-            defaultInhabitants = Arrays.asList(new Archer(), new Archer(), new Archer(), new Archer(), new Archer(), new Knight());
+            defaultBuildings = new ArrayList<>(Arrays.asList(new Cannon(), new ArcherTower(), new Farm(3)));
+            defaultInhabitants = new ArrayList<>(Arrays.asList(new Archer(), new Archer(), new Archer(), new Archer(), new Archer(), new Knight()));
 
             Village newVillage = new Village(this, defaultBuildings, defaultInhabitants);
             villages.add(newVillage);
-
             //give village the default amount of resources
+            newVillage.recalculateFood();
             newVillage.addResource(Resource.WOOD, defaultResources);
             newVillage.addResource(Resource.IRON, defaultResources);
             newVillage.addResource(Resource.GOLD, defaultResources);
@@ -114,7 +114,7 @@ public class Engine implements IAttack, ITimeSystem {
 
     //region [Buildings]
     public void tryBuild(Village v, Building building) {
-        if(checkIfUpgradeAllowed(building.costToMake, building.resourceNeeded, building.level, v)) {
+        if(checkIfUpgradeAllowed(v, building)) {
             doConstruction(v, building);
         }
     }
@@ -130,7 +130,6 @@ public class Engine implements IAttack, ITimeSystem {
 
         if(newBuilding != null) {
             newBuilding.build(v);
-            v.buildings.add(newBuilding);
             //process construction time here
         }
         else {
@@ -146,12 +145,15 @@ public class Engine implements IAttack, ITimeSystem {
 
     //region [Inhabitants]
     public void tryAddInhabitant(Village v, Inhabitant inhabitant) {
-        if(checkIfUpgradeAllowed(inhabitant.costToMake, inhabitant.resourceRequired, 0, v)) {
+        if(checkIfTrainAllowed(v, inhabitant))
             addInhabitant(v, inhabitant);
-        }
+        else
+            System.out.println("Could not add inhabitant");
+
     }
     private void addInhabitant(Village v, Inhabitant inhabitant) {
-        System.out.println("adding inhabitant.");
+        System.out.println("adding inhabitant " + inhabitant.name);
+        v.upgradeables.add(inhabitant);
         v.inhabitants.add(inhabitant);
     }
     //endregion
@@ -172,6 +174,7 @@ public class Engine implements IAttack, ITimeSystem {
         else {
             System.out.println("You lose.");
         }
+        shieldTimeout(defender.shieldDuration, defender);
     }
 
     public int calculateAttack(Village v) {
@@ -212,13 +215,66 @@ public class Engine implements IAttack, ITimeSystem {
         return payout;
     }
 
-    public boolean checkIfUpgradeAllowed(int cost, Resource resource, int currLevel, Village village){
+    public<T extends Upgradeable> void tryUpgrade(Village v, T upgradeable) {
+
+        if(!checkIfUpgradeAllowed(v, upgradeable))
+        {
+            System.out.println("Upgrade not allowed");
+            return;
+        }
+        upgradeable.upgrade();
+        //apply construction time
+    }
+    public<T extends Upgradeable> boolean checkIfUpgradeAllowed(Village village, T upgradeable){
         //check resources & workers for if upgrade is allowed
-        return village.checkResourceAmount(resource) > cost && currLevel < 3;
+
+        if(village.checkResourceAmount(upgradeable.resourceNeeded) < upgradeable.costToMake) return false;
+        if(upgradeable.level >= upgradeable.maxLevel) return false;
+        if(upgradeable.underConstruction) return false;
+
+        return true;
     }
 
-    public void timeToWait(float time){
-        //wait for time
-        System.out.println("Waiting for: " + time);
+    public boolean checkIfTrainAllowed(Village village, Inhabitant inhabitant) {
+        return (village.hasFoodRoom(inhabitant.foodRequired));
+    }
+
+    /**
+     * Every time an upgrade occurs, set the object to under construction for the given amount of time
+     * @param timeInSeconds the amount of time to wait
+     * @param upgradeable the object being upgraded
+     * @param <T>
+     */
+    public<T extends Upgradeable> void upgradeTimeout(float timeInSeconds, T upgradeable) {
+        upgradeable.underConstruction = true;
+
+        new Thread(() -> {
+        try {
+                Thread.sleep((long)(timeInSeconds * 1000));
+                upgradeable.underConstruction = false;
+                System.out.println("Done upgrade on " + upgradeable.name + ".");
+            } catch (InterruptedException e) {
+            System.out.println("Interrupted");
+        }
+        }).start();
+    }
+
+    /**
+     * give village v a shield for a given amount of time
+     * @param timeInSeconds the amount of time to provide the shield for
+     * @param v the village being shielded
+     */
+    public void shieldTimeout(float timeInSeconds, Village v) {
+        v.shieldActive = true;
+
+        new Thread(() -> {
+            try {
+                Thread.sleep((long)(timeInSeconds * 1000));
+                v.shieldActive = false;
+                System.out.println("Shield expired.");
+            } catch (InterruptedException e) {
+                System.out.println("Interrupted");
+            }
+        }).start();
     }
 }

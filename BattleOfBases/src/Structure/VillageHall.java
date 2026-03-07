@@ -14,6 +14,8 @@ public class VillageHall extends Building{
     private Village village;
 
     public VillageHall(Village village) {
+        name = "villagehall";
+        setValues(100, Resource.GOLD, 50, 16);
         totalArmy = new ArrayList<>();
         this.village = village;
     }
@@ -29,7 +31,7 @@ public class VillageHall extends Building{
     public Inhabitant createUnit(Inhabitant unitType) {
         //attempt to instantiate a new unit based on cost
 
-        if(village.checkResourceAmount(unitType.resourceRequired) > unitType.costToMake && totalFood > unitType.foodRequired)
+        if(village.checkResourceAmount(unitType.resourceNeeded) > unitType.costToMake && totalFood > unitType.foodRequired)
         {
             System.out.println("Creating unit of type: " + unitType);
             return unitType;
@@ -41,7 +43,7 @@ public class VillageHall extends Building{
     public ArmyMember createArmyUnit(ArmyMember unitType) {
         //attempt to instantiate a new unit based on cost
 
-        if(village.checkResourceAmount(unitType.resourceRequired) > unitType.costToMake && totalFood > unitType.foodRequired)
+        if(village.checkResourceAmount(unitType.resourceNeeded) > unitType.costToMake && totalFood > unitType.foodRequired)
         {
             System.out.println("Creating unit of type: " + unitType);
             return unitType;

@@ -14,17 +14,21 @@ public class Village {
     private int amountOfWins;
     private int rank;
 
-    public float shieldDuration;
-    public boolean hasShield() {return shieldDuration > 0;}
+    public float shieldDuration = 10f;
+    public boolean shieldActive;
+    public int totalFood;
+    public int foodConsumed;
 
     public Engine engine;
     public VillageHall villageHall;
     public List<Building> buildings = new ArrayList<>();
     public List<Inhabitant> inhabitants = new ArrayList<>();
+    public List<Upgradeable> upgradeables = new ArrayList<>();
 
     public Village(Engine engine) {
         this.engine = engine;
         this.villageHall = new VillageHall(this);
+        upgradeables.add(villageHall);
     }
 
     public Village(Engine engine, List<Building> buildings, List<Inhabitant> inhabitants) {
@@ -33,13 +37,15 @@ public class Village {
         this.inhabitants = inhabitants;
 
         this.villageHall = new VillageHall(this);
-
+        upgradeables.add(villageHall);
+        upgradeables.addAll(buildings);
+        upgradeables.addAll(inhabitants);
     }
 
-    public void upgradeVillage(Resource materials, int cost, float time) {
+    public void upgradeVillage(Village v) {
         //check with engine if upgrade is possible based on the village's materials and workers available
         System.out.println("attempt to upgrade village");
-        if(engine.checkIfUpgradeAllowed(cost, materials, villageLevel, this)) {
+        if(engine.checkIfUpgradeAllowed(v, villageHall)) {
             //upgrade village
             System.out.println("upgrading village...");
             villageLevel++;
@@ -63,7 +69,6 @@ public class Village {
             return 0;
         }
     }
-
     public void spendResource(Resource type, int amount){
         if(type.equals(Resource.WOOD)){
             totalWood -= amount;
@@ -89,5 +94,26 @@ public class Village {
         } else {
             System.out.println("Incorrect resource inputted.");
         }
+    }
+
+    /**
+     * used to recalculate the amount of food used and consumed by the village
+     * this is useful when villages are constructed and farms/inhabitants may not have been initialized traditionally
+     */
+    public void recalculateFood() {
+        totalFood = 0;
+        foodConsumed = 0;
+
+        for(Building building : buildings) {
+            if(building instanceof Farm)
+                totalFood += ((Farm) building).foodProduced;
+        }
+        for(Inhabitant inhabitant : inhabitants) {
+            foodConsumed += inhabitant.foodRequired;
+        }
+    }
+
+    public boolean hasFoodRoom(int additionalFood) {
+        return (totalFood - (foodConsumed + additionalFood)) >= 0;
     }
 }

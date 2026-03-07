@@ -2,22 +2,27 @@ package Unit;
 import Structure.*;
 import System.*;
 
-abstract public class Inhabitant {
+abstract public class Inhabitant extends Upgradeable {
     public int foodRequired;
-    public Resource resourceRequired;
-    public int costToMake;
-
     private Village village;
 
     public void setCost(int cost, int food, Resource resource){
+        level = 0;
         costToMake = cost;
         foodRequired = food;
-        resourceRequired = resource;
+        resourceNeeded = resource;
+    }
+
+    public void upgrade(){
+        //attempt to upgrade based on available workers and amount of resources available
+        System.out.println("Upgrading " + name + ".");
+        Engine.getInstance().upgradeTimeout(upgradeTime, this);
+        level++;
     }
 
     // Seeing if a unit can be built.
-    public boolean createUnit(int food, Resource resource, int cost){
-        return food >= foodRequired && resource.equals(resourceRequired) && cost >= costToMake;
+    public void createUnit(Village v){
+        v.foodConsumed += foodRequired;
     }
 
     public void deleteUnit() {
