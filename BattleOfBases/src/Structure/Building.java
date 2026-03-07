@@ -37,10 +37,10 @@ abstract public class Building {
     }
     public void build(Village owner) {
         //attempt to build this building based on available workers and resources available
-        System.out.println("Creating building");
         village = owner;
 
-        owner.addResource(resourceNeeded, -costToMake);
+        owner.spendResource(resourceNeeded, costToMake);
+        System.out.println("Building was successfully built.");
     }
 
     public abstract Building clone();

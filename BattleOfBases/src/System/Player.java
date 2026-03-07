@@ -1,6 +1,5 @@
 package System;
 import Structure.*;
-
 import java.util.Scanner;
 public class Player {
     int playerID;
@@ -13,32 +12,33 @@ public class Player {
 
         scanner = new Scanner(System.in);
         //currently actions are controlled through text input, the GUI will handle this in the future
-        printCommands();
 
         String response;
 
         loop: while (true) {
+            printCommands();
             System.out.println("Please enter a command:");
             input = scanner.nextLine();
-            //response = village.ReceiveCommand(input);
+            input = formatString(input);
 
             switch(input) {
-                case "AttackExplore":
-                    AttackExplore();
+                case "attackexplore":
+                    attackExplore();
                     break;
-                case "Build":
-                    Build();
+                case "build":
+                    build();
                     break;
-                case "Generate":
+                case "generate":
+                    generate();
                     break;
-                case "Help":
+                case "help":
                     printCommands();
                     break;
-                case "Upgrade":
+                case "upgrade":
                     break;
-                case "Train":
+                case "train":
                     break;
-                case "Quit":
+                case "quit":
                     break loop;
                 default:
                     System.out.println("Not a valid command.");
@@ -51,30 +51,39 @@ public class Player {
         System.out.println("Exiting game...");
     }
 
-    private void AttackExplore() {
+    private void attackExplore() {
         System.out.println("Generating a potential target...");
         Village defender = Engine.getInstance().randomAttack();
         if (defender == null) {
             System.out.println("Could not find suitable village");
-        }else {
-            System.out.println("Village found with defense strength of: " + Engine.getInstance().calculateDefense(defender)
-                    + "\nYour Village has an attacking strength of: " + Engine.getInstance().calculateAttack(village)
-                    + "\nWould you like to attack them?"
-                    + "\nYes / No");
-            input = scanner.nextLine();
-
-            if (input.equals("Yes")) {
-                System.out.println("Performing attack.");
-                Engine.getInstance().processBattle(village, defender);
-            } else {
-                System.out.println("Not processing attack.");
-            }
+        }
+        else {
+            attackTargetPrompt(defender);
         }
     }
 
-    private void Build() {
+    private void attackTargetPrompt(Village defender) {
+        System.out.println("Village found with defense strength of: " + Engine.getInstance().calculateDefense(defender)
+                + "\nYour Village has an attacking strength of: " + Engine.getInstance().calculateAttack(village)
+                + "\nWould you like to attack them?"
+                + "\nYes / No");
+
+        input = scanner.nextLine();
+        input = formatString(input);
+
+        if (input.equals("yes")) {
+            System.out.println("Performing attack.");
+            Engine.getInstance().processBattle(village, defender);
+        } else {
+            System.out.println("Not processing attack.");
+        }
+    }
+
+    private void build() {
         printBuildings();
         input = scanner.nextLine();
+        input = formatString(input);
+
         for(Building building: Engine.buildingTypes) {
             if(input.equals(building.name))
             {
@@ -83,7 +92,18 @@ public class Player {
         }
     }
 
-
+    private void generate() {
+        Village newVillage = Engine.getInstance().generateNewVillage(village);
+        System.out.println("\nAttacking new village");
+        //attempt to attack the newly generated village
+        attackTargetPrompt(newVillage);
+    }
+    private String formatString(String s) {
+        s = s.toLowerCase();
+        s = s.replaceAll("\\s", "");
+        return s;
+    }
+//region [Print Statements]
     private void printBuildings() {
         System.out.println("What kind of building would you like to build?"
                 + "\nArcher Tower: 5 Wood"
@@ -97,15 +117,18 @@ public class Player {
     }
 
     private void printCommands() {
-        System.out.println("Welcome to the Battle of Bases prototype! Utilize the following commands to perform actions!"
+        System.out.println(
+                  "\n======================================================================================================="
+                + "\nWelcome to the Battle of Bases prototype! Utilize the following commands to perform actions!"
                 + "\n======================================================================================================="
-                + "\nAttackExplore: Find an enemy base to attack."
+                + "\nAttack Explore: Find an enemy base to attack."
                 + "\nBuild: Construct a new building."
-                + "\nGenerate: Create a new village of relative strength to your own."
+                + "\nGenerate: Create a new village of relative strength to your own, for you to attack."
                 + "\nHelp: Print this list of commands."
                 + "\nUpgrade: Upgrade a building, given it isn't at the maximum level already."
                 + "\nTrain: Produce inhabitants, if you have the required resources and capacity."
                 + "\nQuit: Exit the game."
                 + "\n=======================================================================================================");
     }
+//endregion
 }

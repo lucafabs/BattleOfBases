@@ -3,29 +3,31 @@ import Structure.*;
 import Unit.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Engine implements IAttack, ITimeSystem {
     private ITimeSystem timeSystem;
     private int maxVillageLevel;
 
-    public Village[] villages;
+    public List<Village> villages;
 
     //default buildings a village will receive when created initially
     private List<Building> defaultBuildings = new ArrayList<>();
 
     //default inhabitants a village will receive when created initially
-    private Inhabitant[] defaultInhabitants;
+    private List<Inhabitant> defaultInhabitants = new ArrayList<>();
 
     private static final int defaultResources = 100;
+    private static final int initialVillages = 10;
 
     public static Building[] buildingTypes = new Building[] {new ArcherTower(), new Cannon(), new Farm(), new GoldMine(), new IronMine(), new LumberMill()};
-
+    public static Inhabitant[] inhabitantTypes = new Inhabitant[] {new Archer(), new Catapult(), new Knight(), new Soldier(), new Collector(), new Worker()};
 
     private static Engine singleInstance = null;
 
     private Engine() {
-        villages = new Village[10];
+        villages = new ArrayList<>();
         generateVillages();
     }
     public static synchronized Engine getInstance()
@@ -40,7 +42,7 @@ public class Engine implements IAttack, ITimeSystem {
         //check if attack is possible - are there villages that can be attacked? is the attacker allowed?
         System.out.println("Searching for villages that can be attacked...");
         for(Village v : villages) {
-            if(v.shieldDuration <= 0) {
+            if(!v.hasShield()) {
                 //this village can be attacked
                 return v;
             }
@@ -52,49 +54,107 @@ public class Engine implements IAttack, ITimeSystem {
     public void generateVillages() {
         //initialize villages[]
         System.out.println("Generating villages");
-        for(int i = 0; i < villages.length; i++) {
+        for(int i = 0; i < initialVillages; i++) {
             //give village the buildings & inhabitants they spawn with by default
-            defaultBuildings.add(new Cannon());
-            defaultInhabitants = new Inhabitant[] {new Archer(), new Archer(), new Archer(), new Archer(), new Archer()};
+            defaultBuildings = Arrays.asList(new Cannon(), new ArcherTower());
+            defaultInhabitants = Arrays.asList(new Archer(), new Archer(), new Archer(), new Archer(), new Archer(), new Knight());
 
-            villages[i] = new Village(this, defaultBuildings, defaultInhabitants);
+            Village newVillage = new Village(this, defaultBuildings, defaultInhabitants);
+            villages.add(newVillage);
 
             //give village the default amount of resources
-            villages[i].addResource(Resource.WOOD, defaultResources);
-            villages[i].addResource(Resource.IRON, defaultResources);
-            villages[i].addResource(Resource.GOLD, defaultResources);
+            newVillage.addResource(Resource.WOOD, defaultResources);
+            newVillage.addResource(Resource.IRON, defaultResources);
+            newVillage.addResource(Resource.GOLD, defaultResources);
         }
     }
 
-    public int determineRank(int wins) {
+    /**
+     * generate a new village that is relative in strength to v
+     * @param v the village asking to generate a new one
+     */
+    public Village generateNewVillage(Village v) {
+        //the attack and defense the new village should aim to have
+        int approxAttack = calculateAttack(v);
+        int approxDef = calculateDefense(v);
+
+        Village newVillage = new Village(this);
+        int newVillageAttack = 0;
+        int newVillageDefense = 0;
+
+        newVillage.addResource(Resource.WOOD, defaultResources);
+        newVillage.addResource(Resource.IRON, defaultResources);
+        newVillage.addResource(Resource.GOLD, defaultResources);
+
+        //add random defenses until an appropriate defensive strength is reached
+        while(newVillageDefense < approxDef)
+        {
+            //range from 0-1, which would build a cannon or archer tower
+            Building newBuilding = buildingTypes[(int)(Math.random()*2)];
+            doConstruction(newVillage, newBuilding);
+            newVillageDefense = calculateDefense(newVillage);
+        }
+
+        //add random inhabitants until an appropriate attack strength is reached
+        while(newVillageAttack < approxAttack)
+        {
+            //range from 0-3, which would spawn Archer, Catapult, Knight or Soldier
+            Inhabitant newInhabitant = inhabitantTypes[(int)(Math.random()*4)];
+            addInhabitant(newVillage, newInhabitant);
+            newVillageAttack = calculateAttack(newVillage);
+        }
+        return newVillage;
+    }
+
+    public int determineRank(Village v) {
         //compare rank to other villages[]
         System.out.println("Determining rank of village");
         return 0;
     }
 
-    public void tryBuild(Village v, Building b) {
-        if(checkIfUpgradeAllowed(b.costToMake, b.resourceNeeded, b.level, v)) {
-            System.out.println("Constructing " + b.name);
-            Building newBuilding = b.clone();
-            if(newBuilding != null) {
-                newBuilding.build(v);
-                v.buildings.add(newBuilding);
-            }
-            else {
-                System.out.println("failed to build " + b.name);
-            }
+    //region [Buildings]
+    public void tryBuild(Village v, Building building) {
+        if(checkIfUpgradeAllowed(building.costToMake, building.resourceNeeded, building.level, v)) {
+            doConstruction(v, building);
         }
     }
 
-    public boolean checkIfUpgradeAllowed(int cost, Resource resource, int currLevel, Village village){
-        //check resources & workers for if upgrade is allowed
-        return village.checkResourceAmount(resource) > cost && currLevel < 3;
+    /**
+     * Go through with the construction of a building
+     * @param v the village being built in
+     * @param building the building being built
+     */
+    private void doConstruction(Village v, Building building) {
+        System.out.println("Constructing " + building.name);
+        Building newBuilding = building.clone();
+
+        if(newBuilding != null) {
+            newBuilding.build(v);
+            v.buildings.add(newBuilding);
+            //process construction time here
+        }
+        else {
+            System.out.println("failed to build " + building.name);
+        }
     }
 
     public void processConstructionTime(float time) {
         //workers are occupied during construction time
         System.out.println("Constructing...");
     }
+    //endregion
+
+    //region [Inhabitants]
+    public void tryAddInhabitant(Village v, Inhabitant inhabitant) {
+        if(checkIfUpgradeAllowed(inhabitant.costToMake, inhabitant.resourceRequired, 0, v)) {
+            addInhabitant(v, inhabitant);
+        }
+    }
+    private void addInhabitant(Village v, Inhabitant inhabitant) {
+        System.out.println("adding inhabitant.");
+        v.inhabitants.add(inhabitant);
+    }
+    //endregion
 
     public void processBattle(Village attacker, Village defender) {
         //measure attack of attacker & defense of defender
@@ -107,7 +167,7 @@ public class Engine implements IAttack, ITimeSystem {
             System.out.println(
                     payout[0] + " Wood\n"
                             +payout[1] + " Iron\n"
-                            +payout[2] + " Gold\n");
+                            +payout[2] + " Gold");
         }
         else {
             System.out.println("You lose.");
@@ -115,7 +175,7 @@ public class Engine implements IAttack, ITimeSystem {
     }
 
     public int calculateAttack(Village v) {
-        System.out.println("Calculating attack of village");
+        //System.out.println("Calculating attack of village");
         int attack = 0;
         for(Inhabitant inhabitant: v.inhabitants) {
             if(inhabitant instanceof  ArmyMember) attack += ((ArmyMember) inhabitant).getAttack();
@@ -124,7 +184,7 @@ public class Engine implements IAttack, ITimeSystem {
     }
 
     public int calculateDefense(Village v) {
-        System.out.println("Calculating defense of village");
+        //System.out.println("Calculating defense of village");
         int defense = 0;
         for(Building building: v.buildings) {
             if(building instanceof DefenseBuilding) defense += ((DefenseBuilding) building).getDefense();
@@ -140,9 +200,9 @@ public class Engine implements IAttack, ITimeSystem {
         int[] payout = new int[]{(int)(0.10*defender.checkResourceAmount(Resource.WOOD)), (int)(0.10*defender.checkResourceAmount(Resource.IRON)), (int)(0.10*defender.checkResourceAmount(Resource.GOLD))};
 
         //remove resources from target
-        defender.addResource(Resource.WOOD, -payout[0]);
-        defender.addResource(Resource.IRON, -payout[1]);
-        defender.addResource(Resource.GOLD, -payout[2]);
+        defender.spendResource(Resource.WOOD, payout[0]);
+        defender.spendResource(Resource.IRON, payout[1]);
+        defender.spendResource(Resource.GOLD, payout[2]);
 
         //add resources to attacker
         attacker.addResource(Resource.WOOD, payout[0]);
@@ -150,6 +210,11 @@ public class Engine implements IAttack, ITimeSystem {
         attacker.addResource(Resource.GOLD, payout[2]);
 
         return payout;
+    }
+
+    public boolean checkIfUpgradeAllowed(int cost, Resource resource, int currLevel, Village village){
+        //check resources & workers for if upgrade is allowed
+        return village.checkResourceAmount(resource) > cost && currLevel < 3;
     }
 
     public void timeToWait(float time){

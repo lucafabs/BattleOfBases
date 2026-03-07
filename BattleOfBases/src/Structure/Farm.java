@@ -4,7 +4,7 @@ public class Farm extends Building{
     int foodProduced;
 
     public Farm(){
-        name = "Farm";
+        name = "farm";
         setValues(5, Resource.WOOD, 5, 8);
     }
     public void setFarmLevel(){

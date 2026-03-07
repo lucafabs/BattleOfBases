@@ -1,6 +1,8 @@
 package System;
 import Structure.*;
 import Unit.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class Village {
@@ -13,18 +15,19 @@ public class Village {
     private int rank;
 
     public float shieldDuration;
+    public boolean hasShield() {return shieldDuration > 0;}
 
     public Engine engine;
     public VillageHall villageHall;
-    public List<Building> buildings;
-    public Inhabitant[] inhabitants;
+    public List<Building> buildings = new ArrayList<>();
+    public List<Inhabitant> inhabitants = new ArrayList<>();
 
     public Village(Engine engine) {
         this.engine = engine;
         this.villageHall = new VillageHall(this);
     }
 
-    public Village(Engine engine, List<Building> buildings, Inhabitant[] inhabitants) {
+    public Village(Engine engine, List<Building> buildings, List<Inhabitant> inhabitants) {
         this.engine = engine;
         this.buildings = buildings;
         this.inhabitants = inhabitants;
