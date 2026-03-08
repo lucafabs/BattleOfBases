@@ -19,18 +19,7 @@ public class VillageHall extends Building{
         totalArmy = new ArrayList<>();
         this.village = village;
     }
-
-    public void launchAttack(Village target) {
-        //attempt randomAttack through engine
-        System.out.println("Attempting to launch attack");
-    }
-    public void guardVillage(float timeProtected) {
-        //prevent attacks for given time
-        System.out.println("Guarding village for: " + timeProtected);
-    }
     public Inhabitant createUnit(Inhabitant unitType) {
-        //attempt to instantiate a new unit based on cost
-
         if(village.checkResourceAmount(unitType.resourceNeeded) > unitType.costToMake && totalFood > unitType.foodRequired)
         {
             System.out.println("Creating unit of type: " + unitType);

@@ -53,6 +53,10 @@ public class Player {
     }
 
     //region [Attacking]
+
+    /**
+     * this performs the necessary I/O for AttackExplore
+     */
     private void attackExplore() {
         System.out.println("Generating a potential target...");
         Village defender = Engine.getInstance().randomAttack();
@@ -64,6 +68,10 @@ public class Player {
         }
     }
 
+    /**
+     * I/O for performing the attack on the randomly generated village from AttackExplore
+     * @param defender the village defending from this player
+     */
     private void attackTargetPrompt(Village defender) {
         System.out.println("Village found with defense strength of: " + Engine.getInstance().calculateDefense(defender)
                 + "\nYour Village has an attacking strength of: " + Engine.getInstance().calculateAttack(village)
@@ -81,6 +89,10 @@ public class Player {
     }
     //endregion
     //region [Build]
+
+    /**
+     * Performs functionality for attempting to build a building
+     */
     private void build() {
         System.out.println("What kind of building would you like to build?");
         printBuildings();
@@ -95,6 +107,10 @@ public class Player {
     }
     //endregion
     //region [Generate]
+
+    /**
+     * calls method for engine to generate a village, then provides attack prompt for player to attack that village
+     */
     private void generate() {
         Village newVillage = Engine.getInstance().generateNewVillage(village);
         System.out.println("\nAttacking new village");
@@ -102,7 +118,11 @@ public class Player {
         attackTargetPrompt(newVillage);
     }
     //endregion
-    //region [Resources]
+    //region [Stats]
+
+    /**
+     * Print stats for this player's village
+     */
     private void stats() {
         printStats();
         System.out.println("Type anything to go back");
@@ -110,6 +130,10 @@ public class Player {
     }
     //endregion
     //region [Train]
+
+    /**
+     * I/O for training a new inhabitant
+     */
     private void train() {
         System.out.println("What kind of inhabitant would you like to train?");
         printInhabitants();
@@ -124,6 +148,10 @@ public class Player {
     }
     //endregion
     //region [Upgrade]
+
+    /**
+     * I/O for attempting to upgrade a unit or building
+     */
     private void upgrade() {
 
         System.out.println(
@@ -145,6 +173,10 @@ public class Player {
     }
     //endregion
     //region [Print Statements]
+
+    /**
+     * This is text printed for types of buildings the player can build
+     */
     private void printBuildings() {
         System.out.println(
                   "==========================================="
@@ -158,6 +190,9 @@ public class Player {
                 + "\n===========================================");
     }
 
+    /**
+     * This is text printed for types of commands the player can use
+     */
     private void printCommands() {
         System.out.println(
                   "\n======================================================================================================="
@@ -174,6 +209,9 @@ public class Player {
                 + "\n=======================================================================================================");
     }
 
+    /**
+     * This is text printed for types of inhabitants the player can train
+     */
     private void printInhabitants() {
         System.out.println(
                   "==========================================="
@@ -187,6 +225,9 @@ public class Player {
                 + "\n===========================================");
     }
 
+    /**
+     * This is text printed for the player's stats
+     */
     private void printStats() {
         System.out.println(
           "Current resources:"
@@ -201,6 +242,9 @@ public class Player {
         + "\n===========================================");
     }
 
+    /**
+     * This method prints all upgradeables in the village (buildings and inhabitants)
+     */
     private void printUpgradeables() {
         int index = 0;
         for(Upgradeable upgradeable : village.upgradeables) {
@@ -210,11 +254,22 @@ public class Player {
     }
     //endregion
     //region [Input]
+
+    /**
+     * this method provides the player with a prompt to give a command, receive input through Scanner
+     * and format the input so that commands are case-insensitive, and ignores spaces
+     */
     private void giveInputPrompt() {
         System.out.println("Please enter a command:");
         input = scanner.nextLine();
         input = formatString(input);
     }
+
+    /**
+     * This method does the formatting for user input, removing spaces and converting the string to lowercase
+     * @param s the string being formatted
+     * @return the reformatted string
+     */
     private String formatString(String s) {
         s = s.toLowerCase();
         s = s.replaceAll("\\s", "");

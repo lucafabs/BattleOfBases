@@ -1,14 +1,13 @@
 package System;
 import Structure.*;
 import Unit.*;
-
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class Engine implements IAttack, ITimeSystem {
-    private ITimeSystem timeSystem;
+
+    //the maximum level a village may be
     private int maxVillageLevel;
 
     public List<Village> villages;
@@ -19,7 +18,10 @@ public class Engine implements IAttack, ITimeSystem {
     //default inhabitants a village will receive when created initially
     private List<Inhabitant> defaultInhabitants = new ArrayList<>();
 
+    //default amount of each resource a village will start with
     private static final int defaultResources = 100;
+
+    //how many other villages to spawn initially (this is mostly for single player purposes, 1 village/player in future)
     private static final int initialVillages = 10;
 
     public static Building[] buildingTypes = new Building[] {new ArcherTower(), new Cannon(), new Farm(), new GoldMine(), new IronMine(), new LumberMill()};
@@ -27,32 +29,31 @@ public class Engine implements IAttack, ITimeSystem {
 
     private static Engine singleInstance = null;
 
+    /**
+     * Engine is in charge of making decisions when it comes to villages & time-related tasks
+     * This includes adding/upgrading buildings and inhabitants, and performing attacks as well as their loot payouts
+     */
     private Engine() {
         villages = new ArrayList<>();
         generateVillages();
     }
-    public static synchronized Engine getInstance()
-    {
+
+    /**
+     * Singleton for the engine
+     * @return the singleton
+     */
+    public static synchronized Engine getInstance() {
         if (singleInstance == null)
             singleInstance = new Engine();
 
         return singleInstance;
     }
 
-    public Village randomAttack(){
-        //check if attack is possible - are there villages that can be attacked? is the attacker allowed?
-        System.out.println("Searching for villages that can be attacked...");
-        for(Village v : villages) {
-            if(!v.shieldActive) {
-                //this village can be attacked
-                return v;
-            }
-        }
-        return null;
-    }
-
+    //region [Village Generation]
+    /**
+     * Initializes villages
+     */
     public void generateVillages() {
-        //initialize villages
         System.out.println("Generating villages");
         for(int i = 0; i < initialVillages; i++) {
             //give village the buildings & inhabitants they spawn with by default
@@ -105,14 +106,14 @@ public class Engine implements IAttack, ITimeSystem {
         }
         return newVillage;
     }
-
-    public int determineRank(Village v) {
-        //compare rank to other villages[]
-        System.out.println("Determining rank of village");
-        return 0;
-    }
-
+    //endregion
     //region [Buildings]
+
+    /**
+     * Attempt to build, based on constraints in checkIfUpgradeAllowed
+     * @param v the village being built in
+     * @param building the building being built
+     */
     public void tryBuild(Village v, Building building) {
         if(checkIfUpgradeAllowed(v, building)) {
             doConstruction(v, building);
@@ -137,13 +138,14 @@ public class Engine implements IAttack, ITimeSystem {
         }
     }
 
-    public void processConstructionTime(float time) {
-        //workers are occupied during construction time
-        System.out.println("Constructing...");
-    }
     //endregion
-
     //region [Inhabitants]
+
+    /**
+     * attempt to add inhabitant to village depending on constraint in checkIfTrainAllowed
+     * @param v the village being added to
+     * @param inhabitant the inhabitant being added
+     */
     public void tryAddInhabitant(Village v, Inhabitant inhabitant) {
         if(checkIfTrainAllowed(v, inhabitant))
             addInhabitant(v, inhabitant);
@@ -151,12 +153,30 @@ public class Engine implements IAttack, ITimeSystem {
             System.out.println("Could not add inhabitant");
 
     }
+
+    /**
+     * Finish adding the inhabitant to the village
+     * @param v the village being added to
+     * @param inhabitant the inhabitant being added
+     */
     private void addInhabitant(Village v, Inhabitant inhabitant) {
         System.out.println("adding inhabitant " + inhabitant.name);
         v.upgradeables.add(inhabitant);
         v.inhabitants.add(inhabitant);
     }
     //endregion
+    //region [Battles]
+    public Village randomAttack(){
+        //check if attack is possible - are there villages that can be attacked? is the attacker allowed?
+        System.out.println("Searching for villages that can be attacked...");
+        for(Village v : villages) {
+            if(!v.shieldActive) {
+                //this village can be attacked
+                return v;
+            }
+        }
+        return null;
+    }
 
     public void processBattle(Village attacker, Village defender) {
         //measure attack of attacker & defense of defender
@@ -214,7 +234,8 @@ public class Engine implements IAttack, ITimeSystem {
 
         return payout;
     }
-
+    //endregion
+    //region [Upgrading]
     public<T extends Upgradeable> void tryUpgrade(Village v, T upgradeable) {
 
         if(!checkIfUpgradeAllowed(v, upgradeable))
@@ -225,9 +246,15 @@ public class Engine implements IAttack, ITimeSystem {
         upgradeable.upgrade();
         //apply construction time
     }
-    public<T extends Upgradeable> boolean checkIfUpgradeAllowed(Village village, T upgradeable){
-        //check resources & workers for if upgrade is allowed
 
+    /**
+     * Check if an upgrade can be performed
+     * @param village the village being upgraded in
+     * @param upgradeable the building or troop being upgraded
+     * @return whether or not the upgrade can be performed
+     * @param <T> Generic for objects that can be upgraded
+     */
+    public<T extends Upgradeable> boolean checkIfUpgradeAllowed(Village village, T upgradeable){
         if(village.checkResourceAmount(upgradeable.resourceNeeded) < upgradeable.costToMake) return false;
         if(upgradeable.level >= upgradeable.maxLevel) return false;
         if(upgradeable.underConstruction) return false;
@@ -235,30 +262,45 @@ public class Engine implements IAttack, ITimeSystem {
         return true;
     }
 
-    public boolean checkIfTrainAllowed(Village village, Inhabitant inhabitant) {
-        return (village.hasFoodRoom(inhabitant.foodRequired));
-    }
-
     /**
      * Every time an upgrade occurs, set the object to under construction for the given amount of time
      * @param timeInSeconds the amount of time to wait
      * @param upgradeable the object being upgraded
-     * @param <T>
+     * @param <T> Generic for objects that can be upgraded
      */
     public<T extends Upgradeable> void upgradeTimeout(float timeInSeconds, T upgradeable) {
         upgradeable.underConstruction = true;
 
         new Thread(() -> {
-        try {
+            try {
                 Thread.sleep((long)(timeInSeconds * 1000));
                 upgradeable.underConstruction = false;
                 System.out.println("Done upgrade on " + upgradeable.name + ".");
             } catch (InterruptedException e) {
-            System.out.println("Interrupted");
-        }
+                System.out.println("Interrupted");
+            }
         }).start();
     }
+    //endregion
 
+    /**
+     * Check if a troop can be trained (added to the army)
+     * @param village the village being added to
+     * @param inhabitant the inhabitant being adde
+     * @return whether or not training is allowed
+     */
+    public boolean checkIfTrainAllowed(Village village, Inhabitant inhabitant) {
+        return (village.hasFoodRoom(inhabitant.foodRequired));
+    }
+    /**
+     * Determine the rank of the given village, compared to other villages
+     * @param v the given village
+     * @return the rank of the village
+     */
+    public int determineRank(Village v) {
+        System.out.println("Determining rank of village");
+        return 0;
+    }
     /**
      * give village v a shield for a given amount of time
      * @param timeInSeconds the amount of time to provide the shield for

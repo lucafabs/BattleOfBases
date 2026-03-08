@@ -6,6 +6,12 @@ abstract public class Inhabitant extends Upgradeable {
     public int foodRequired;
     private Village village;
 
+    /**
+     * Initialize cost variables
+     * @param cost the amount of the resource required
+     * @param food the amount of food consumed by this inhabitant
+     * @param resource the type of resource required to train this inhabitant
+     */
     public void setCost(int cost, int food, Resource resource){
         level = 0;
         costToMake = cost;
@@ -13,20 +19,19 @@ abstract public class Inhabitant extends Upgradeable {
         resourceNeeded = resource;
     }
 
+    /**
+     * attempt to upgrade based on available workers and amount of resources available
+     */
     public void upgrade(){
-        //attempt to upgrade based on available workers and amount of resources available
         System.out.println("Upgrading " + name + ".");
         Engine.getInstance().upgradeTimeout(upgradeTime, this);
         level++;
     }
 
-    // Seeing if a unit can be built.
-    public void createUnit(Village v){
-        v.foodConsumed += foodRequired;
-    }
-
+    /**
+     * this unit is removed from current assignments and safely deleted
+     */
     public void deleteUnit() {
-        //this unit is removed from current assignments and safely deleted
         System.out.println("Deleting Unit");
     }
 }
