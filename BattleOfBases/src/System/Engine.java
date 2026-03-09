@@ -132,6 +132,7 @@ public class Engine implements IAttack, ITimeSystem {
         if(newBuilding != null) {
             newBuilding.build(v);
             //process construction time here
+            upgradeTimeout(newBuilding.upgradeTime, newBuilding);
         }
         else {
             System.out.println("failed to build " + building.name);
@@ -161,8 +162,7 @@ public class Engine implements IAttack, ITimeSystem {
      */
     private void addInhabitant(Village v, Inhabitant inhabitant) {
         System.out.println("adding inhabitant " + inhabitant.name);
-        v.upgradeables.add(inhabitant);
-        v.inhabitants.add(inhabitant);
+        inhabitant.addUnit(v);
     }
     //endregion
     //region [Battles]

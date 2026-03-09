@@ -28,6 +28,14 @@ abstract public class Inhabitant extends Upgradeable {
         level++;
     }
 
+    public void addUnit(Village v) {
+        village = v;
+        village.upgradeables.add(this);
+        village.inhabitants.add(this);
+        village.spendResource(resourceNeeded, costToMake);
+        village.recalculateFood();
+    }
+
     /**
      * this unit is removed from current assignments and safely deleted
      */
