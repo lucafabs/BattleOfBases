@@ -132,7 +132,6 @@ public class Engine implements IAttack, ITimeSystem {
         if(newBuilding != null) {
             newBuilding.build(v);
             //process construction time here
-            upgradeTimeout(newBuilding.upgradeTime, newBuilding);
         }
         else {
             System.out.println("failed to build " + building.name);

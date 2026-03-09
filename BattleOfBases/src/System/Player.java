@@ -31,7 +31,6 @@ public class Player {
                     generate();
                     break;
                 case "help":
-                    printCommands();
                     break;
                 case "stats":
                     stats();
