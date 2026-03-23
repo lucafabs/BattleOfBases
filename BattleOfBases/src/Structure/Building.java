@@ -3,7 +3,6 @@ import Unit.*;
 import System.*;
 abstract public class Building extends Upgradeable {
     protected int areaSize;
-    protected int hitPoints;
 
     protected Village village;
 

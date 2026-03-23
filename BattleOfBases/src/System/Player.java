@@ -72,8 +72,8 @@ public class Player {
      * @param defender the village defending from this player
      */
     private void attackTargetPrompt(Village defender) {
-        System.out.println("Village found with defense strength of: " + Engine.getInstance().calculateDefense(defender)
-                + "\nYour Village has an attacking strength of: " + Engine.getInstance().calculateAttack(village)
+        System.out.println("Village found with defense strength of: " + defender.calculateDefense()
+                + "\nYour Village has an attacking strength of: " + village.calculateAttack()
                 + "\nWould you like to attack them?"
                 + "\nYes / No");
 
@@ -236,8 +236,8 @@ public class Player {
         + "\nGold: " + village.checkResourceAmount(Resource.GOLD)
         + "\nTotal Food: " + village.totalFood
         + "\nFood Consumed: " + village.foodConsumed
-        + "\nAttack: " + Engine.getInstance().calculateAttack(village)
-        + "\nDefense: " + Engine.getInstance().calculateDefense(village)
+        + "\nAttack: " + village.calculateAttack()
+        + "\nDefense: " + village.calculateDefense()
         + "\n===========================================");
     }
 

@@ -4,7 +4,6 @@ public abstract class ArmyMember extends Inhabitant {
     private int attackDamage;
     private float attackRange;
     private DamageType attackType;
-    private int hitPoints;
 
     /**
      * Initialize values for the ArmyMember
@@ -23,9 +22,9 @@ public abstract class ArmyMember extends Inhabitant {
     /**
      * @return the attack strength of the given army member
      */
-    public int getAttack() {
+    public double getAttack() {
         //returns the attack strength of the ArmyMember
-        return (int)((attackDamage * attackRange) + hitPoints);
+        return (attackDamage * attackRange) + hitPoints;
     }
 
     /**

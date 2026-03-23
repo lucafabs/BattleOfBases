@@ -1,4 +1,8 @@
 package System;
+import ChallengeDecision.ChallengeAttack;
+import ChallengeDecision.ChallengeDefense;
+import ChallengeDecision.ChallengeEntitySet;
+import ChallengeDecision.ChallengeResource;
 import Structure.*;
 import Unit.*;
 
@@ -6,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Village {
-    private int totalWood;
-    private int totalIron;
-    private int totalGold;
+    private double totalWood;
+    private double totalIron;
+    private double totalGold;
     private int villageLevel;
     private int mapSize;
     private int amountOfWins;
@@ -24,6 +28,11 @@ public class Village {
     public List<Building> buildings = new ArrayList<>();
     public List<Inhabitant> inhabitants = new ArrayList<>();
     public List<Upgradeable> upgradeables = new ArrayList<>();
+
+    private ChallengeEntitySet<Double, Double> challengeEntitySet;
+    private List<ChallengeAttack<Double, Double>> challengeAttacks;
+    private List<ChallengeDefense<Double, Double>> challengeDefenses;
+    private List<ChallengeResource<Double, Double>> challengeResources;
 
     public Village(Engine engine) {
         this.engine = engine;
@@ -57,7 +66,7 @@ public class Village {
         }
     }
 
-    public int checkResourceAmount(Resource type){
+    public double checkResourceAmount(Resource type){
         if(type.equals(Resource.WOOD)){
             return totalWood;
         } else if (type.equals(Resource.IRON)){
@@ -69,7 +78,7 @@ public class Village {
             return 0;
         }
     }
-    public void spendResource(Resource type, int amount){
+    public void spendResource(Resource type, double amount){
         if(type.equals(Resource.WOOD)){
             totalWood -= amount;
         } else if (type.equals(Resource.IRON)){
@@ -81,7 +90,7 @@ public class Village {
         }
     }
 
-    public void addResource(Resource type, int amount) {
+    public void addResource(Resource type, double amount) {
         if (type.equals(Resource.WOOD)) {
             totalWood += amount;
             if (totalWood < 0) totalWood = 0;
@@ -115,5 +124,47 @@ public class Village {
 
     public boolean hasFoodRoom(int additionalFood) {
         return (totalFood - (foodConsumed + additionalFood)) >= 0;
+    }
+
+    public int calculateAttack() {
+        //System.out.println("Calculating attack of village");
+        int attack = 0;
+        for(Inhabitant inhabitant: inhabitants) {
+            if(inhabitant instanceof  ArmyMember) attack += (int) ((ArmyMember) inhabitant).getAttack();
+        }
+        return attack;
+    }
+
+    public int calculateDefense() {
+        //System.out.println("Calculating defense of village");
+        int defense = 0;
+        for(Building building: buildings) {
+            if(building instanceof DefenseBuilding) defense += (int) ((DefenseBuilding) building).getDefense();
+        }
+        return defense;
+    }
+
+    public ChallengeEntitySet getChallengeEntitySet() {
+        challengeResources = new ArrayList<>();
+        challengeAttacks = new ArrayList<>();
+        challengeDefenses = new ArrayList<>();
+
+        //resources don't have hit-points
+        challengeResources.add(new ChallengeResource<>(totalGold, 0.0d));
+        challengeResources.add(new ChallengeResource<>(totalIron, 0.0d));
+        challengeResources.add(new ChallengeResource<>(totalWood, 0.0d));
+
+        //add defenses and attackers to their respective lists
+        for (Upgradeable upgradeable : upgradeables) {
+            if(upgradeable instanceof DefenseBuilding) {
+                challengeDefenses.add(new ChallengeDefense<>(((DefenseBuilding) upgradeable).getDefense(), upgradeable.hitPoints));
+            }
+            else if(upgradeable instanceof ArmyMember) {
+                challengeAttacks.add(new ChallengeAttack<>(((ArmyMember)upgradeable).getAttack(), upgradeable.hitPoints));
+            }
+        }
+
+        challengeEntitySet = new ChallengeEntitySet<>(challengeAttacks, challengeDefenses, challengeResources);
+        return challengeEntitySet;
     }
 }

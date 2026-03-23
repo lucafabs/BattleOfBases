@@ -10,5 +10,6 @@ public abstract class Upgradeable {
     public String name;
     public boolean underConstruction;
     public float upgradeTime = 10f;
+    public double hitPoints;
     public abstract void upgrade();
 }

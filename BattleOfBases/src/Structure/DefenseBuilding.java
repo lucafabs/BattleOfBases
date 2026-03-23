@@ -17,8 +17,8 @@ abstract public class DefenseBuilding extends Building {
     /**
      * Returns the defense of the given building
      */
-    public int getDefense() {
-        return (int)(attackDamage * attackRange);
+    public double getDefense() {
+        return (attackDamage * attackRange);
     }
 
     /**

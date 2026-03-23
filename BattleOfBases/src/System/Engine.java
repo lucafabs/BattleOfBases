@@ -1,11 +1,12 @@
 package System;
 import Structure.*;
 import Unit.*;
+import ChallengeDecision.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Engine implements IAttack, ITimeSystem {
+public class Engine implements ITimeSystem, IAttack {
 
     //the maximum level a village may be
     private int maxVillageLevel;
@@ -76,8 +77,8 @@ public class Engine implements IAttack, ITimeSystem {
      */
     public Village generateNewVillage(Village v) {
         //the attack and defense the new village should aim to have
-        int approxAttack = calculateAttack(v);
-        int approxDef = calculateDefense(v);
+        int approxAttack = v.calculateAttack();
+        int approxDef = v.calculateDefense();
 
         Village newVillage = new Village(this);
         int newVillageAttack = 0;
@@ -93,7 +94,7 @@ public class Engine implements IAttack, ITimeSystem {
             //range from 0-1, which would build a cannon or archer tower
             Building newBuilding = buildingTypes[(int)(Math.random()*2)];
             doConstruction(newVillage, newBuilding);
-            newVillageDefense = calculateDefense(newVillage);
+            newVillageDefense = newVillage.calculateDefense();
         }
 
         //add random inhabitants until an appropriate attack strength is reached
@@ -102,7 +103,7 @@ public class Engine implements IAttack, ITimeSystem {
             //range from 0-3, which would spawn Archer, Catapult, Knight or Soldier
             Inhabitant newInhabitant = inhabitantTypes[(int)(Math.random()*4)];
             addInhabitant(newVillage, newInhabitant);
-            newVillageAttack = calculateAttack(newVillage);
+            newVillageAttack = newVillage.calculateAttack();
         }
         return newVillage;
     }
@@ -180,15 +181,20 @@ public class Engine implements IAttack, ITimeSystem {
     public void processBattle(Village attacker, Village defender) {
         //measure attack of attacker & defense of defender
         System.out.println("Processing battle.");
-        if (calculateAttack(attacker) > calculateDefense(defender)) {
+
+        ChallengeResult challengeResult;
+        challengeResult = Arbitrer.challengeDecide(attacker.getChallengeEntitySet(), defender.getChallengeEntitySet());
+
+
+        if (challengeResult.getChallengeWon()) {
             //you win!
             System.out.println("You won:");
-            int[] payout = performLootPayout(attacker, defender);
+            List<Double> payout = performLootPayout(attacker, defender, challengeResult.getLoot());
 
             System.out.println(
-                    payout[0] + " Wood\n"
-                            +payout[1] + " Iron\n"
-                            +payout[2] + " Gold");
+                    payout.get(0) + " Gold\n"
+                  + payout.get(1) + " Iron\n"
+                  + payout.get(2) + " Wood");
         }
         else {
             System.out.println("You lose.");
@@ -196,40 +202,26 @@ public class Engine implements IAttack, ITimeSystem {
         shieldTimeout(defender.shieldDuration, defender);
     }
 
-    public int calculateAttack(Village v) {
-        //System.out.println("Calculating attack of village");
-        int attack = 0;
-        for(Inhabitant inhabitant: v.inhabitants) {
-            if(inhabitant instanceof  ArmyMember) attack += ((ArmyMember) inhabitant).getAttack();
-        }
-        return attack;
-    }
-
-    public int calculateDefense(Village v) {
-        //System.out.println("Calculating defense of village");
-        int defense = 0;
-        for(Building building: v.buildings) {
-            if(building instanceof DefenseBuilding) defense += ((DefenseBuilding) building).getDefense();
-        }
-        return defense;
-    }
-
-    public int[] performLootPayout(Village attacker, Village defender){
+    public List<Double> performLootPayout(Village attacker, Village defender, List<ChallengeResource<Double,Double>> loot){
         //measure loot to reward based on target's amount of resources
         System.out.println("Calculating loot payout");
 
         //calculation
-        int[] payout = new int[]{(int)(0.10*defender.checkResourceAmount(Resource.WOOD)), (int)(0.10*defender.checkResourceAmount(Resource.IRON)), (int)(0.10*defender.checkResourceAmount(Resource.GOLD))};
+        List<Double> payout = new ArrayList<>();
+        payout.add(loot.get(0).getProperty()); //GOLD
+        payout.add(loot.get(1).getProperty()); //IRON
+        payout.add(loot.get(2).getProperty()); //WOOD
+
 
         //remove resources from target
-        defender.spendResource(Resource.WOOD, payout[0]);
-        defender.spendResource(Resource.IRON, payout[1]);
-        defender.spendResource(Resource.GOLD, payout[2]);
+        defender.spendResource(Resource.GOLD, payout.get(0));
+        defender.spendResource(Resource.IRON, payout.get(1));
+        defender.spendResource(Resource.WOOD, payout.get(2));
 
         //add resources to attacker
-        attacker.addResource(Resource.WOOD, payout[0]);
-        attacker.addResource(Resource.IRON, payout[1]);
-        attacker.addResource(Resource.GOLD, payout[2]);
+        attacker.addResource(Resource.GOLD, payout.get(0));
+        attacker.addResource(Resource.IRON, payout.get(1));
+        attacker.addResource(Resource.WOOD, payout.get(2));
 
         return payout;
     }
