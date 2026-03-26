@@ -2,6 +2,7 @@ package System;
 import Structure.*;
 import Unit.*;
 import ChallengeDecision.*;
+import FactoryPattern.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +30,10 @@ public class Engine implements ITimeSystem, IAttack {
     public static Inhabitant[] inhabitantTypes = new Inhabitant[] {new Archer(), new Catapult(), new Knight(), new Soldier(), new Collector(), new Worker()};
 
     private static Engine singleInstance = null;
+
+    //factories
+    BuildingFactory buildingFactory = new BuildingFactory();
+    InhabitantFactory inhabitantFactory = new InhabitantFactory();
 
     /**
      * Engine is in charge of making decisions when it comes to villages & time-related tasks
@@ -131,7 +136,7 @@ public class Engine implements ITimeSystem, IAttack {
         Building newBuilding = building.clone();
 
         if(newBuilding != null) {
-            newBuilding.build(v);
+            buildingFactory.buildBuilding(newBuilding, v);
             //process construction time here
         }
         else {
@@ -162,7 +167,7 @@ public class Engine implements ITimeSystem, IAttack {
      */
     private void addInhabitant(Village v, Inhabitant inhabitant) {
         System.out.println("adding inhabitant " + inhabitant.name);
-        inhabitant.addUnit(v);
+        inhabitantFactory.createInhabitant(inhabitant, v);
     }
     //endregion
     //region [Battles]
