@@ -1,17 +1,15 @@
 package System;
-import ModelViewController.*;
-
-import java.util.Scanner;
 public class Player {
     int playerID;
     Village village;
-
-    private Scanner scanner;
-    private Controller controller;
-    private String input;
-    public Player(Village village) {
+    public Player(int playerID, Village village) {
+        this.playerID = playerID;
         this.village = village;
-        controller = new Controller(this.village);
-        controller.start();
+    }
+    public int getPlayerID() {
+        return playerID;
+    }
+    public Village getVillage() {
+        return village;
     }
 }

@@ -1,13 +1,12 @@
-import Structure.Resource;
-import System.*;
-import Unit.*;
+import System.Server;
 
 public class Main {
     public static void main(String[] args) {
-
-        Village village = Engine.getInstance().villages.get(9);
-
-        //in the future multiple players will be supported
-        Player p = new Player(village);
+        try {
+            Server server = new Server(8080);
+            server.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

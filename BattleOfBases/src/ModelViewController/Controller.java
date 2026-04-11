@@ -1,58 +1,56 @@
 package ModelViewController;
 
+import ChallengeDecision.BattleResult;
 import Structure.Building;
+import Structure.Resource;
 import System.Engine;
 import System.Village;
 import Unit.Inhabitant;
+import Unit.Upgradeable;
 
 public class Controller {
 
     private Village village;
-    private View view;
-    String input;
 
     public Controller(Village village) {
         this.village = village;
-        this.view = new View();
     }
 
-    public void start() {
-        boolean running = true;
+    public String handleCommand(String input) {
 
-        //currently actions are controlled through text input, the GUI will handle this in the future
-        while (running) {
-            view.printCommands();
-            input = view.giveInputPrompt();
-
-            switch(input) {
-                case "attackexplore":
-                    attackExplore();
-                    break;
-                case "build":
-                    build();
-                    break;
-                case "generate":
-                    generate();
-                    break;
-                case "help":
-                    break;
-                case "stats":
-                    stats();
-                    break;
-                case "train":
-                    train();
-                    break;
-                case "upgrade":
-                    upgrade();
-                    break;
-                case "quit":
-                    running = false;
-                default:
-                    view.showMessage("Not a valid command.");
-            }
+        if (input == null || input.isEmpty()) {
+            return "Empty command";
         }
 
-        view.showMessage("Exiting game...");
+        input = input.toLowerCase().replaceAll("\\s+", "");
+        String[] parts = input.split(":");
+        String action = parts[0];
+
+        switch(action) {
+            case "attackexplore":
+                return attackExplore();
+
+            case "build":
+                return build(parts);
+
+            case "generate":
+                return generate();
+
+            case "stats":
+                return stats();
+
+            case "train":
+                return train(parts);
+
+            case "upgrade":
+                return upgrade(parts);
+
+            case "help":
+                return help();
+
+            default:
+                return "Not a valid command.";
+        }
     }
 
     //region [Attacking]
@@ -60,35 +58,17 @@ public class Controller {
     /**
      * this performs the necessary I/O for AttackExplore
      */
-    private void attackExplore() {
-        view.showMessage("Generating a potential target...");
-        Village defender = Engine.getInstance().randomAttack();
+    private String attackExplore() {
+        Village defender = Engine.getInstance().randomAttack(village);
         if (defender == null) {
-            view.showMessage("Could not find suitable village");
+            return "Could not find suitable village";
         }
-        else {
-            attackTargetPrompt(defender);
-        }
-    }
+        BattleResult result = Engine.getInstance().processBattle(village, defender);
 
-    /**
-     * I/O for performing the attack on the randomly generated village from AttackExplore
-     * @param defender the village defending from this player
-     */
-    private void attackTargetPrompt(Village defender) {
-        view.showMessage("Village found with defense strength of: " + defender.calculateDefense()
-                + "\nYour Village has an attacking strength of: " + village.calculateAttack()
-                + "\nWould you like to attack them?"
-                + "\nYes / No");
-
-        input = view.giveInputPrompt();
-
-        if (input.equals("yes")) {
-            view.showMessage("Performing attack.");
-            Engine.getInstance().processBattle(village, defender);
-        } else {
-            view.showMessage("Not processing attack.");
-        }
+        return result.message +
+               "\nGold: " + result.loot.get(0) +
+               "\nIron: " + result.loot.get(1) +
+               "\nWood: " + result.loot.get(2);
     }
     //endregion
     //region [Build]
@@ -96,17 +76,23 @@ public class Controller {
     /**
      * Performs functionality for attempting to build a building
      */
-    private void build() {
-        view.showMessage("What kind of building would you like to build?");
-        view.printBuildings();
-        input = view.giveInputPrompt();
+    private String build(String[] parts) {
+        if (parts.length < 2) {
+            return "Usage: build:<building>";
+        }
+
+        String type = parts[1];
 
         for(Building building: Engine.buildingTypes) {
-            if(input.equals(building.name))
+            if(type.equalsIgnoreCase(building.name))
             {
-                Engine.getInstance().tryBuild(village, building);
+                boolean success = Engine.getInstance().tryBuild(village, building);
+
+                return success ? "Building started: " + building.name : "Cannot build " + building.name;
             }
         }
+
+        return "Invalid building type.";
     }
     //endregion
     //region [Generate]
@@ -114,11 +100,10 @@ public class Controller {
     /**
      * calls method for engine to generate a village, then provides attack prompt for player to attack that village
      */
-    private void generate() {
+    private String generate() {
         Village newVillage = Engine.getInstance().generateNewVillage(village);
-        view.showMessage("\nAttacking new village");
-        //attempt to attack the newly generated village
-        attackTargetPrompt(newVillage);
+
+        return "New enemy generated.\n" + "Defense: " + newVillage.calculateDefense();
     }
     //endregion
     //region [Stats]
@@ -126,10 +111,14 @@ public class Controller {
     /**
      * Print stats for this player's village
      */
-    private void stats() {
-        view.printStats(village);
-        view.showMessage("Type anything to go back");
-        input = view.giveInputPrompt();
+    private String stats() {
+        return "===== Village Stats =====\n" +
+                "Wood: " + village.checkResourceAmount(Resource.WOOD) + "\n" +
+                "Iron: " + village.checkResourceAmount(Resource.IRON) + "\n" +
+                "Gold: " + village.checkResourceAmount(Resource.GOLD) + "\n" +
+                "Food: " + village.foodConsumed + "/" + village.totalFood + "\n" +
+                "Attack: " + village.calculateAttack() + "\n" +
+                "Defense: " + village.calculateDefense();
     }
     //endregion
     //region [Train]
@@ -137,17 +126,20 @@ public class Controller {
     /**
      * I/O for training a new inhabitant
      */
-    private void train() {
-        view.showMessage("What kind of inhabitant would you like to train?");
-        view.printInhabitants();
-        input = view.giveInputPrompt();
+    private String train(String[] parts) {
+        if(parts.length < 2) {
+            return "Usage: train:<unit>";
+        }
 
-        for(Inhabitant inhabitant: Engine.inhabitantTypes) {
-            if(input.equals(inhabitant.name))
-            {
-                Engine.getInstance().tryAddInhabitant(village, inhabitant);
+        String type = parts[1];
+
+        for (Inhabitant inhabitant : Engine.inhabitantTypes) {
+            if (type.equalsIgnoreCase(inhabitant.name)) {
+                boolean success = Engine.getInstance().tryAddInhabitant(village, inhabitant);
+                return success ? "Training " + inhabitant.name : "Not enough capacity.";
             }
         }
+        return "Invalid unit type";
     }
     //endregion
     //region [Upgrade]
@@ -155,24 +147,62 @@ public class Controller {
     /**
      * I/O for attempting to upgrade a unit or building
      */
-    private void upgrade() {
+    private String upgrade(String[] parts) {
 
-        view.showMessage(
-                "==========================================="
-                        + "\nWhat would you like to upgrade?"
-                        + "\n===========================================");
-        view.printUpgradeables(village);
-        view.showMessage("Please provide the index of what you would like to upgrade");
-        input = view.giveInputPrompt();
-
-        int index = Integer.parseInt(input);
-
-        if(index < 0 || index > village.upgradeables.size()-1) {
-            view.showMessage("Invalid index, returning...");
-            return;
+        if (parts.length < 2) {
+            return getUpgradeableList();
         }
 
-        Engine.getInstance().tryUpgrade(village, village.upgradeables.get(index));
+        try {
+            int index = Integer.parseInt(parts[1]);
+
+            if (index < 0 || index >= village.upgradeables.size()) {
+                return "Invalid index.";
+            }
+
+            Upgradeable upgradeable = village.upgradeables.get(index);
+            boolean success = Engine.getInstance().tryUpgrade(village, upgradeable);
+
+            return success
+                    ? "Upgrading " + upgradeable.name
+                    : "Cannot upgrade " + upgradeable.name;
+
+        } catch (NumberFormatException e) {
+            return "Invalid index format.";
+        }
+    }
+
+    /**
+     * Build output for upgradeables in village
+     * @return the list of potential upgradeables
+     */
+    private String getUpgradeableList() {
+        StringBuilder sb = new StringBuilder("Upgradeable List:\n");
+
+        for (int i = 0; i < village.upgradeables.size(); i++) {
+            Upgradeable upgradeable = village.upgradeables.get(i);
+            sb.append("[")
+              .append(i)
+              .append("]")
+              .append(upgradeable.name)
+              .append(" (Level ")
+              .append(upgradeable.level)
+              .append(")\n");
+        }
+
+        return sb.toString();
+    }
+    //endregion
+    //region [Help]
+
+    private String help() {
+        return "Commands:\n" +
+               "attackexplore\n" +
+               "build:<type>\n" +
+               "generate\n" +
+               "stats\n" +
+               "train:<type>\n" +
+               "upgrade OR upgrade:<index>\n";
     }
     //endregion
 }
